@@ -89,6 +89,8 @@ class EvseTimeoutError(EvseError):
 class EvseStateChangeError(EvseError):
     pass
 
+#THIS IS JUST A TEST OF GITHUB
+
 class EVSE_reg(BaseRegister):
     def __init__(self, read_only, pointName, units, read_command, write_command, reg_function, operation, reg_type, default_value=None, description=''):
         #     register_type, read_only, pointName, units, description = ''):
