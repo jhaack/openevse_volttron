@@ -1,0 +1,5 @@
+export SOURCE=examples/OpenEVSE_Testing
+export CONFIG=examples/OpenEVSE_Testing/config
+export TAG=testEVSE
+
+./scripts/core/make-agent.sh

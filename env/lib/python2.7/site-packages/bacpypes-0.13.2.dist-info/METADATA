@@ -1,0 +1,22 @@
+Metadata-Version: 2.0
+Name: bacpypes
+Version: 0.13.2
+Summary: Testing multiple versions of python
+Home-page: http://something.com
+Author: Joel Bender
+Author-email: joel@carrickbender.com
+License: MIT
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.5
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+
+This is a long line of text
+
+

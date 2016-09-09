@@ -1,0 +1,5 @@
+export SOURCE=KevinAgents/TestScheduler
+export CONFIG=KevinAgents/TestScheduler/schedule-example.agent
+export TAG=schedule_example
+
+./scripts/core/make-agent.sh

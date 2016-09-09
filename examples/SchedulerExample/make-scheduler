@@ -1,0 +1,5 @@
+export SOURCE=KevinAgents/EVSE
+export CONFIG=KevinAgents/EVSE/config
+export TAG=testEVSE
+
+./scripts/core/make-agent.sh

@@ -1,0 +1,10 @@
+#!/home/volttron/git/volttron/env/bin/python2.7
+# EASY-INSTALL-ENTRY-SCRIPT: 'volttron','console_scripts','volttron-cfg'
+__requires__ = 'volttron'
+import sys
+from pkg_resources import load_entry_point
+
+if __name__ == '__main__':
+    sys.exit(
+        load_entry_point('volttron', 'console_scripts', 'volttron-cfg')()
+    )

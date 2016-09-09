@@ -1,0 +1,6 @@
+[console_scripts]
+volttron = volttron.platform.main:_main
+volttron-cfg = volttron.platform.config:_main
+volttron-ctl = volttron.platform.control:_main
+volttron-pkg = volttron.platform.packaging:_main
+

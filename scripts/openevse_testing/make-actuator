@@ -1,0 +1,5 @@
+export SOURCE=services/core/ActuatorAgent
+export CONFIG=services/core/ActuatorAgent/tests/actuator.config
+export TAG=Actuator
+
+./scripts/core/make-agent.sh

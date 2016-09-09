@@ -1,0 +1,5 @@
+export SOURCE=services/core/MasterDriverAgent
+export CONFIG=services/core/MasterDriverAgent/master-driver_openevse.agent
+export TAG=evse-driver
+
+./scripts/core/make-agent.sh
