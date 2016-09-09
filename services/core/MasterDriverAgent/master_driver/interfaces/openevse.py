@@ -67,6 +67,7 @@ from StringIO import StringIO
 import logging
 
 _log = logging.getLogger(__name__)
+
 type_mapping = {"string": str,
                 "int": int,
                 "integer": int,
@@ -77,7 +78,6 @@ type_mapping = {"string": str,
 #Initializations taken from MIT license defined farther below
 STANDARD_SERIAL_TIMEOUT = 0.5
 RESET_SERIAL_TIMEOUT = 10
-STATUS_SERIAL_TIMEOUT = 0
 CORRECT_RESPONSE_PREFIXES = ('$OK', '$ST', '$NK')
 
 class EvseError(Exception):
@@ -88,8 +88,6 @@ class EvseTimeoutError(EvseError):
 
 class EvseStateChangeError(EvseError):
     pass
-
-#THIS IS JUST A TEST OF GITHUB
 
 class EVSE_reg(BaseRegister):
     def __init__(self, read_only, pointName, units, read_command, write_command, reg_function, operation, reg_type, default_value=None, description=''):
@@ -109,9 +107,6 @@ class EVSE_reg(BaseRegister):
             except ValueError:
                 self.value = self.reg_type()
 
-        print "Point Name", pointName, "default value is", self.value
-
-
 class Interface(BasicRevert, BaseInterface):
     def __init__(self, **kwargs):
         super(Interface, self).__init__(**kwargs)
@@ -124,18 +119,13 @@ class Interface(BasicRevert, BaseInterface):
         self.status = None
         self.parse_config(registry_config_str)
 
-        print 'TAG3 Configure complete'
-
         self.s = serial.Serial(port=self.port, baudrate=self.baud_rate,
                                timeout=STANDARD_SERIAL_TIMEOUT)
-
-        print 'TAG3 Serial Opened'
 
         #Initialize device
         try:
             state_register = self.get_register_by_function('State')
-            e = self.get_point(state_register.point_name) #Get state to update state registers
-            print 'TAG3 state gotten', e
+            self.get_point(state_register.point_name) #Get state to update state registers
             self._silent_request('S2 1') #enable ammeter calibration
             self._silent_request('SE 0') #disable echo
         except:
@@ -143,9 +133,8 @@ class Interface(BasicRevert, BaseInterface):
 
     def get_point(self, point_name):
         register = self.get_register_by_name(point_name)
-        print 'TAG3 get_point: point name, function, and operation are', point_name, register.reg_function, register.operation
 
-        if register.read_command == '':
+        if register.read_command == 'Value':
             return register.value
         elif register.operation == 'Get Function':
             return self.get_functions[register.reg_function](self)
@@ -158,7 +147,6 @@ class Interface(BasicRevert, BaseInterface):
             response = map(register.reg_type,response[1])
 
             if register.reg_function == 'State':
-                print 'TAG3 about to enter state_change'
                 self.state_change(point_name,response = response)
 
             return response
@@ -167,8 +155,6 @@ class Interface(BasicRevert, BaseInterface):
         register = self.get_register_by_name(point_name)
         if register.read_only:
             raise IOError("Trying to write to a point configured read only: " + point_name)
-
-        print "TAG3 set_point: point name, function, and operation are", point_name, register.reg_function, register.operation
 
         #Several registers have special functions involved in processes
         if register.operation == 'Set Function' or register.reg_function == 'GFI':
@@ -181,8 +167,10 @@ class Interface(BasicRevert, BaseInterface):
         value = value.split()
         value = map(register.reg_type, value)
 
+        print "TAG3 set_point: point name, value, and response", point_name, value, response
+
         # If response shows confirmation, update value registers and states.
-        if response in CORRECT_RESPONSE_PREFIXES[:2] and register.read_command == '':
+        if response in CORRECT_RESPONSE_PREFIXES[:2] and register.read_command == 'Value':
 
             if register.reg_function in ['Reset', 'EVSE_Enable', 'Color']:
                 self.state_change(point_name, value = value)
@@ -196,13 +184,14 @@ class Interface(BasicRevert, BaseInterface):
             return [response, value]
 
     def _scrape_all(self):
-        result = {}
-        write_registers = self.get_registers_by_type("byte", False)
-        read_registers = self.get_registers_by_type("byte", True)
-        for register in write_registers + read_registers:
-            result[register.point_name] = self.get_point(register.point_name)
-            print 'TAG2 scrape of', register.point_name,"is",result[register.point_name]
-        return result
+        # result = {}
+        # write_registers = self.get_registers_by_type("byte", False)
+        # read_registers = self.get_registers_by_type("byte", True)
+        # for register in write_registers + read_registers:
+        #     result[register.point_name] = self.get_point(register.point_name)
+        #     print 'TAG2 scrape of', register.point_name,'is',result[register.point_name]
+        # return result
+        return 0
 
     def parse_config(self, config_string):
         if config_string is None:
@@ -258,7 +247,7 @@ class Interface(BasicRevert, BaseInterface):
         #If a get_point on state is being called, update all state registers
         if register.reg_function == 'State':
             state = response[0]
-            print 'TAG3 state is', state
+
             #Device is enabled and awake
             if state >= 0 and state <= 10:
                 sleep_register = self.get_register_by_function('Sleep')
@@ -266,6 +255,7 @@ class Interface(BasicRevert, BaseInterface):
 
                 enable_register = self.get_register_by_function('EVSE_Enable')
                 enable_register.value = enable_register.reg_type(1)
+
             #Device is asleep
             elif state == 254:
                 sleep_register = self.get_register_by_function('Sleep')
@@ -326,9 +316,7 @@ class Interface(BasicRevert, BaseInterface):
         else:
             raise EvseError
 
-        result = self._set_request(request)
-
-        return result[0]
+        return self._set_request(request)[0]
 
 
     def sleep(self, point_name, value):
@@ -342,9 +330,8 @@ class Interface(BasicRevert, BaseInterface):
 
         register = self.get_register_by_name(point_name)
         request = register.write_command
-        result = self._set_request(request)
 
-        return result[0]
+        return self._set_request(request)[0]
 
     def restart_port(self, point_name, value):
         """Setting Restart register to restart the serial port"""
@@ -373,6 +360,7 @@ class Interface(BasicRevert, BaseInterface):
 
     def gfi_enable(self, point_name, value):
         """There are two redundant GFI enable commands to send. Set them both as one."""
+
         register = self.get_register_by_name(point_name)
 
         confirm_1 = self._set_request(register.write_command[:2], value)[0]
@@ -426,7 +414,8 @@ class Interface(BasicRevert, BaseInterface):
 
         settings = '0x' + self._get_request('GE')[1][1]
         bit_flag = bool(int(settings, 16) & self.setting_flags[register.reg_function])
-        return not (bit_flag)
+
+        return not(bit_flag)
 
 #Everything below this line (excluding dictionaries, and including some initialization material at the top) has been
 #taken and/or adapted from the following MIT license:
@@ -455,6 +444,7 @@ class Interface(BasicRevert, BaseInterface):
 
     def _silent_request(self, *args):
         """Send a request, do not read its response"""
+
         command = '$' + ' '.join(args)
 
         print 'TAG3 command is', command
@@ -469,11 +459,13 @@ class Interface(BasicRevert, BaseInterface):
 
     def _set_request(self, *args):
         """Send a requests, wait for its response. Designed for set_point"""
+
         self._silent_request(*args)
         return self._get_response()
 
     def _get_request(self, *args):
         """Send a requests, wait for its response, ignoring $ST and blank responses. designed for get_point"""
+
         self._silent_request(*args)
 
         response = ['$ST', []]
@@ -490,9 +482,11 @@ class Interface(BasicRevert, BaseInterface):
 
     def _get_response(self):
         """Get the response of a command."""
+
         response = self._read_line()
 
-        print "TAG3 response is", response
+        print 'TAG3 response is', response
+
         if response[:3] in CORRECT_RESPONSE_PREFIXES:
             response = response.split()
             if response[0] == '$ST':
@@ -542,6 +536,7 @@ class Interface(BasicRevert, BaseInterface):
         """Destructor"""
         self.s.close()
 
+    #Dictionaries for selecting register functions and bit flags
     set_functions = {"EVSE_Enable": evse_enable,
                      "Reset": reset,
                      "Sleep": sleep,

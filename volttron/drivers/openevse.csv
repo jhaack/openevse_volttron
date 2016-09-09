@@ -1,20 +1,20 @@
 Volttron Point Name,Units Details,Unit Type,Units,Writable,Read,Write,Function,Operation,Starting Value,Notes
-EVSE_enable,0/1,bool,0/1,TRUE,,FDFE,EVSE_Enable,Set Function,TRUE,"0 is disabled, 1 is enabled. Driver keeps track of changes."
-EVSE_reset,0/1,bool,0/1,TRUE,,FR,Reset,Set Function,FALSE,"0 is reset completed, 1 is resetting. Allow get_point timeout of 15s, and do not have more than 4 self-tests disabled when calling as part of larger script or will timeout."
-EVSE_sleep,0/1,bool,0/1,TRUE,,FS,Sleep,Set Function,FALSE,"0 is not sleeping, 1 is sleeping. Driver keeps track of changes."
-print_text,"coordinates, text",string,function,TRUE,,FP,Text,,OpenEVSE,Pass string argument to print text to screen. Calling get_point here reads back the last string that was displayed.
-backlight_color,range 0-7,int,0-7,TRUE,,FB,Color,,6,"Set_point to set LCD color (0-7): off, red, yellow, green, teal, blue, violet, or white"
-restart_port,0/1,bool,0/1,TRUE,,,Restart,Set Function,FALSE,"0 is restart completed, 1 is restarting."
+EVSE_enable,0/1,bool,0/1,TRUE,Value,"FD,FE",EVSE_Enable,Set Function,TRUE,"0 is disabled, 1 is enabled. Driver keeps track of changes. Disable should not be called to interrupt charge – put device to sleep first."
+EVSE_reset,0/1,bool,0/1,TRUE,Value,FR,Reset,Set Function,FALSE,"0 is reset completed, 1 is resetting. Allow get_point timeout of 15s, and do not have more than 4 self-tests disabled when calling as part of larger script or will timeout."
+EVSE_sleep,0/1,bool,0/1,TRUE,Value,FS,Sleep,Set Function,FALSE,"0 is not sleeping, 1 is sleeping. Driver keeps track of changes."
+print_text,"coordinates, text",string,function,TRUE,Value,FP,Text,,OpenEVSE,Pass string argument to print text to screen. Calling get_point here reads back the last string that was displayed.
+backlight_color,range 0-7,int,0-7,TRUE,Value,FB,Color,,6,"Set_point to set LCD color (0-7): off, red, yellow, green, teal, blue, violet, or white"
+restart_port,0/1,bool,0/1,TRUE,Value,,Restart,Set Function,FALSE,"0 is restart completed, 1 is restarting."
 LCD_type,0/1,int,0/1,TRUE,GE,S0,LCD,Setting,,"0 is monochrome, 1 is RGB display"
 clock,datetime.datetime,int,yy mm dd hr min sec,TRUE,GT,S1,Datetime,Get Function,,Date and time. [yr mo day hr min sec]
-ammeter_cal_enable,0/1,bool,0/1,TRUE,,S2,Ammeter,,TRUE,"0 is ammeter calibration disabled, 1 is ammeter calibration enabled."
+ammeter_cal_enable,0/1,bool,0/1,TRUE,Value,S2,Ammeter,,TRUE,"0 is ammeter calibration disabled, 1 is ammeter calibration enabled."
 charge_time_limit,range 0-255,int,15-minute increments,TRUE,G3,S3,,,,Set timer in 15-min increments
 ammeter_setting,"scale, offset",int,A,TRUE,GA,SA,,,,Ammeter scale factor and offset settings
 current_capacity_range,"min current, max current",int,A,TRUE,GC,,,,,Current transfer range
 current_capacity,max current,int,A,TRUE,GE,SC,Capacity,Get Function,,Upper limit on current
 diode_check_enable,,bool,0/1,TRUE,GE,SD,Diode,Setting,,"0 is diode check disabled, 1 is diode check enabled"
-command_echo_enable,,bool,0/1,TRUE,,SE,Echo,,FALSE,"0 is echo disabled, 1 is echo disabled"
-GFI_self_test_enable,,bool,0/1,TRUE,GE,SFSS,GFI,Setting,,0 is GFI self test disabled 1 is GFI self test enabled. A 0 in both redundant GFI registers will disable the self test.
+command_echo_enable,,bool,0/1,TRUE,Value,SE,Echo,,FALSE,"0 is echo disabled, 1 is echo disabled"
+GFI_self_test_enable,,bool,0/1,TRUE,GE,"SF,SS",GFI,Setting,,0 is GFI self test disabled 1 is GFI self test enabled. A 0 in both redundant GFI registers will disable the self test.
 ground_check_enable,,bool,0/1,TRUE,GE,SG,Ground,Setting,,"0 is ground check disabled, 1 is ground check disabled."
 charge_limit,range 0-255,int,kWh,TRUE,GH,SH,,,,Energy charge limit
 accumulated_charge,,int,Wh,TRUE,GU,SK,,,,Get_point to read current charge (in Ws) and sum of all charges (in Wh). Set_point to force sum of all charges (in Wh).
@@ -22,7 +22,7 @@ service_level,service level,string,1/2/A,TRUE,GE,SL,Service,Get Function,,Charge
 voltmeter_setting,"scale, offset",int,V,TRUE,GM,SM,,,,Voltmeter scale factor and offset settings. Requires voltmeter on device – currently non-functional on OpnEVSE v4
 overtemp_thresh,"ambient, IR",int,10th of a degree C,TRUE,GO,SO,,,,Overtemperature thresholds. Currently non-functional on OpenEVSE v4
 stuck_relay_check_enable,,bool,0/1,TRUE,GE,SR,Relay,Setting,,"0 is stuck relay check disabled, 1 is stuck relay check disabled."
-timer,"start time, end time",int,starthr startmin endhr endmin,TRUE,,ST,Timer,,"[0, 0, 0, 0]","Timer start and stop time. When a timer is set and the device is sleeping, the charger will wake up to charge for the time duration, then return to sleep."
+timer,"start time, end time",int,starthr startmin endhr endmin,TRUE,Value,ST,Timer,,"[0, 0, 0, 0]","Timer start and stop time. When a timer is set and the device is sleeping, the charger will wake up to charge for the time duration, then return to sleep."
 vent_required_enable,,bool,0/1,TRUE,GE,SV,Vent,Setting,,"0 is vent required warning disabled, 1 is vent required warning enabled."
 current_voltage,charging current and voltage,int,"mA, mV",FALSE,GG,,,,,Charging current and voltage
 temp,"ds3231, mcp9808, tmp007",int,10th of a degree C,FALSE,GP,,,,,Temperature measurements
