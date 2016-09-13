@@ -1,6 +1,6 @@
 {
     "agentid": "master_driver",
     "driver_config_list": [
-		"/home/volttron/git/openevse_volttron/services/core/MasterDriverAgent/master_driver/openevse1.config"
+		"/home/lboss/openevse_volttron/services/core/MasterDriverAgent/master_driver/openevse1.config"
 	]
 }

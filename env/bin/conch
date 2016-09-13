@@ -1,15 +1,11 @@
-#!/home/volttron/git/volttron/env/bin/python
-# Copyright (c) Twisted Matrix Laboratories.
-# See LICENSE for details.
+#!/home/lboss/openevse_volttron/env/bin/python
 
-import sys, os
-extra = os.path.dirname(os.path.dirname(sys.argv[0]))
-sys.path.insert(0, extra)
-try:
-    import _preamble
-except ImportError:
-    sys.exc_clear()
-sys.path.remove(extra)
+# -*- coding: utf-8 -*-
+import re
+import sys
 
 from twisted.conch.scripts.conch import run
-run()
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(run())

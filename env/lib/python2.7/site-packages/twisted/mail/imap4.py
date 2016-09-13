@@ -15,7 +15,6 @@ To do::
   Make APPEND recognize (again) non-existent mailboxes before accepting the literal
 """
 
-import rfc822
 import base64
 import binascii
 import hmac
@@ -25,16 +24,15 @@ import tempfile
 import string
 import time
 import random
-import types
 
-import email.Utils
+import email.utils
 
 try:
     import cStringIO as StringIO
 except:
     import StringIO
 
-from zope.interface import implements, Interface
+from zope.interface import implementer, Interface
 
 from twisted.protocols import basic
 from twisted.protocols import policies
@@ -87,7 +85,7 @@ class MessageSet(object):
         if start is self._empty:
             return
 
-        if isinstance(start, types.ListType):
+        if isinstance(start, list):
             self.ranges = start[:]
             self.clean()
         else:
@@ -372,7 +370,8 @@ class Command:
             N = len(names)
             if (N >= 1 and names[0] in self._1_RESPONSES or
                 N >= 2 and names[1] in self._2_RESPONSES or
-                N >= 2 and names[0] == 'OK' and isinstance(names[1], types.ListType) and names[1][0] in self._OK_RESPONSES):
+                N >= 2 and names[0] == 'OK' and isinstance(names[1], list)
+               and names[1][0] in self._OK_RESPONSES):
                 send.append(names)
             else:
                 unuse.append(names)
@@ -444,15 +443,15 @@ class IMailboxListener(Interface):
     def newMessages(exists, recent):
         """Indicates that the number of messages in a mailbox has changed.
 
-        @type exists: C{int} or C{None}
+        @type exists: C{int} or L{None}
         @param exists: The total number of messages now in this mailbox.
         If the total number of messages has not changed, this should be
-        C{None}.
+        L{None}.
 
         @type recent: C{int}
         @param recent: The number of messages now flagged \\Recent.
         If the number of recent messages has not changed, this should be
-        C{None}.
+        L{None}.
         """
 
 # Some constants to help define what an atom is and is not - see the grammar
@@ -469,6 +468,7 @@ _nonAtomChars = r'(){%*"\]' + _SP + _CTL
 # This is all the bytes that match the ATOM-CHAR from the grammar in the RFC.
 _atomChars = ''.join(chr(ch) for ch in range(0x100) if chr(ch) not in _nonAtomChars)
 
+@implementer(IMailboxListener)
 class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
     """
     Protocol implementation for an IMAP4rev1 server.
@@ -479,8 +479,6 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
         - Selected
         - Logout
     """
-    implements(IMailboxListener)
-
     # Identifier for this server software
     IDENT = 'Twisted IMAP4rev1 Ready'
 
@@ -1479,7 +1477,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
             sequence numbers or UIDs.
 
         @type searchResults: C{list}
-        @param searchResults: The search results so far or C{None} if no
+        @param searchResults: The search results so far or L{None} if no
             results yet.
         """
         if searchResults is None:
@@ -1633,7 +1631,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
 
     def search_BEFORE(self, query, id, msg):
         date = parseTime(query.pop(0))
-        return rfc822.parsedate(msg.getInternalDate()) < date
+        return email.utils.parsedate(msg.getInternalDate()) < date
 
     def search_BODY(self, query, id, msg):
         body = query.pop(0).lower()
@@ -1699,7 +1697,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
 
     def search_ON(self, query, id, msg):
         date = parseTime(query.pop(0))
-        return rfc822.parsedate(msg.getInternalDate()) == date
+        return email.utils.parsedate(msg.getInternalDate()) == date
 
     def search_OR(self, query, id, msg, lastIDs):
         """
@@ -1749,7 +1747,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
         @type msg: Provider of L{imap4.IMessage}
         """
         date = msg.getHeaders(False, 'date').get('date', '')
-        date = rfc822.parsedate(date)
+        date = email.utils.parsedate(date)
         return date < parseTime(query.pop(0))
 
     def search_SENTON(self, query, id, msg):
@@ -1764,7 +1762,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
         @type msg: Provider of L{imap4.IMessage}
         """
         date = msg.getHeaders(False, 'date').get('date', '')
-        date = rfc822.parsedate(date)
+        date = email.utils.parsedate(date)
         return date[:3] == parseTime(query.pop(0))[:3]
 
     def search_SENTSINCE(self, query, id, msg):
@@ -1779,12 +1777,12 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
         @type msg: Provider of L{imap4.IMessage}
         """
         date = msg.getHeaders(False, 'date').get('date', '')
-        date = rfc822.parsedate(date)
+        date = email.utils.parsedate(date)
         return date > parseTime(query.pop(0))
 
     def search_SINCE(self, query, id, msg):
         date = parseTime(query.pop(0))
-        return rfc822.parsedate(msg.getInternalDate()) > date
+        return email.utils.parsedate(msg.getInternalDate()) > date
 
     def search_SMALLER(self, query, id, msg):
         return int(query.pop(0)) > msg.getSize()
@@ -1922,7 +1920,7 @@ class IMAP4Server(basic.LineReceiver, policies.TimeoutMixin):
         if _w is None:
             _w = self.transport.write
         idate = msg.getInternalDate()
-        ttup = rfc822.parsedate_tz(idate)
+        ttup = email.utils.parsedate_tz(idate)
         if ttup is None:
             log.msg("%d:%r: unpareseable internaldate: %r" % (id, msg, idate))
             raise IMAP4Exception("Internal failure generating INTERNALDATE")
@@ -2209,14 +2207,13 @@ class IllegalServerResponse(IMAP4Exception): pass
 
 TIMEOUT_ERROR = error.TimeoutError()
 
+@implementer(IMailboxListener)
 class IMAP4Client(basic.LineReceiver, policies.TimeoutMixin):
     """IMAP4 client protocol implementation
 
     @ivar state: A string representing the state the connection is currently
     in.
     """
-    implements(IMailboxListener)
-
     tags = None
     waiting = None
     queued = None
@@ -3365,7 +3362,7 @@ class IMAP4Client(basic.LineReceiver, policies.TimeoutMixin):
         message-id fields are strings, while the from, sender, reply-to,
         to, cc, and bcc fields contain address data.  Address data consists
         of a sequence of name, source route, mailbox name, and hostname.
-        Fields which are not present for a particular address may be C{None}.
+        Fields which are not present for a particular address may be L{None}.
         """
         return self._fetch(str(messages), useUID=uid, envelope=1)
 
@@ -3844,7 +3841,7 @@ class IMAP4Client(basic.LineReceiver, policies.TimeoutMixin):
         @param flags: The flags to set
 
         @type silent: C{bool}
-        @param silent: If true, cause the server to supress its verbose
+        @param silent: If true, cause the server to suppress its verbose
         response.
 
         @type uid: C{bool}
@@ -3870,7 +3867,7 @@ class IMAP4Client(basic.LineReceiver, policies.TimeoutMixin):
         @param flags: The flags to set
 
         @type silent: C{bool}
-        @param silent: If true, cause the server to supress its verbose
+        @param silent: If true, cause the server to suppress its verbose
         response.
 
         @type uid: C{bool}
@@ -3896,7 +3893,7 @@ class IMAP4Client(basic.LineReceiver, policies.TimeoutMixin):
         @param flags: The flags to set
 
         @type silent: C{bool}
-        @param silent: If true, cause the server to supress its verbose
+        @param silent: If true, cause the server to suppress its verbose
         response.
 
         @type uid: C{bool}
@@ -3971,7 +3968,7 @@ def parseIdList(s, lastMessageId=None):
     Parse a message set search key into a C{MessageSet}.
 
     @type s: C{str}
-    @param s: A string description of a id list, for example "1:3, 4:*"
+    @param s: A string description of an id list, for example "1:3, 4:*"
 
     @type lastMessageId: C{int}
     @param lastMessageId: The last message sequence id or UID, depending on
@@ -4204,7 +4201,7 @@ def splitQuoted(s):
 
     Tokens that would otherwise be separated but are surrounded by \"
     remain as a single token.  Any token that is not quoted and is
-    equal to \"NIL\" is tokenized as C{None}.
+    equal to \"NIL\" is tokenized as L{None}.
 
     @type s: C{str}
     @param s: The string to be split
@@ -4286,9 +4283,9 @@ def collapseStrings(results):
     """
     copy = []
     begun = None
-    listsList = [isinstance(s, types.ListType) for s in results]
+    listsList = [isinstance(s, list) for s in results]
 
-    pred = lambda e: isinstance(e, types.TupleType)
+    pred = lambda e: isinstance(e, tuple)
     tran = {
         0: lambda e: splitQuoted(''.join(e)),
         1: lambda e: [''.join([i[0] for i in e])]
@@ -4423,7 +4420,7 @@ def collapseNestedLists(items):
             pieces.extend([' ', 'NIL'])
         elif isinstance(i, (DontQuoteMe, int, long)):
             pieces.extend([' ', str(i)])
-        elif isinstance(i, types.StringTypes):
+        elif isinstance(i, (str, unicode)):
             if _needsLiteral(i):
                 pieces.extend([' ', '{', str(len(i)), '}', IMAP4Server.delimiter, i])
             else:
@@ -4448,9 +4445,8 @@ class IClientAuthentication(Interface):
 
 
 
+@implementer(IClientAuthentication)
 class CramMD5ClientAuthenticator:
-    implements(IClientAuthentication)
-
     def __init__(self, user):
         self.user = user
 
@@ -4463,9 +4459,8 @@ class CramMD5ClientAuthenticator:
 
 
 
+@implementer(IClientAuthentication)
 class LOGINAuthenticator:
-    implements(IClientAuthentication)
-
     def __init__(self, user):
         self.user = user
         self.challengeResponse = self.challengeUsername
@@ -4482,9 +4477,8 @@ class LOGINAuthenticator:
         # Respond to something like "Password:"
         return secret
 
+@implementer(IClientAuthentication)
 class PLAINAuthenticator:
-    implements(IClientAuthentication)
-
     def __init__(self, user):
         self.user = user
 
@@ -4525,7 +4519,7 @@ class IAccount(Interface):
         contain multiple hierarchical parts.
 
         @type mbox: An object implementing C{IMailbox}
-        @param mbox: The mailbox to associate with this name.  If C{None},
+        @param mbox: The mailbox to associate with this name.  If L{None},
         a suitable default is created and used.
 
         @rtype: C{Deferred} or C{bool}
@@ -4702,9 +4696,8 @@ class INamespacePresenter(Interface):
         """
 
 
+@implementer(IAccount, INamespacePresenter)
 class MemoryAccount(object):
-    implements(IAccount, INamespacePresenter)
-
     mailboxes = None
     subscriptions = None
     top_id = 0
@@ -4844,7 +4837,7 @@ def statusRequestHelper(mbox, names):
 def parseAddr(addr):
     if addr is None:
         return [(None, None, None),]
-    addr = email.Utils.getaddresses([addr])
+    addr = email.utils.getaddresses([addr])
     return [[fn or None, None] + address.split('@') for fn, address in addr]
 
 def getEnvelope(msg):
@@ -4954,7 +4947,7 @@ class _MessageStructure(object):
         Parse a I{Content-Disposition} header into a two-sequence of the
         disposition and a flattened list of its parameters.
 
-        @return: C{None} if there is no disposition header value, a C{list} with
+        @return: L{None} if there is no disposition header value, a C{list} with
             two elements otherwise.
         """
         if disp:
@@ -5388,7 +5381,7 @@ class IMessageFile(Interface):
     the more complex MIME-based interface.
     """
     def open():
-        """Return an file-like object opened for reading.
+        """Return a file-like object opened for reading.
 
         Reading from the returned file will return all the bytes
         of which this message consists.
