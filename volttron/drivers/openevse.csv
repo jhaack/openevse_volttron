@@ -1,32 +1,32 @@
 Volttron Point Name,Units Details,Unit Type,Units,Writable,Read,Write,Function,Starting Value,Notes
-EVSE_enable,0/1,bool,0/1,TRUE,Value,"FD,FE",EVSE_Enable,TRUE,"0 is disabled, 1 is enabled. Driver keeps track of changes. Disable should not be called to interrupt charge – put device to sleep first."
-EVSE_reset,0/1,bool,0/1,TRUE,Value,FR,Reset,FALSE,"0 is reset completed, 1 is resetting. Allow get_point timeout of 15s, and do not have more than 4 self-tests disabled when calling as part of larger script or will timeout."
-EVSE_sleep,0/1,bool,0/1,TRUE,Value,FS,Sleep,FALSE,"0 is not sleeping, 1 is sleeping. Driver keeps track of changes."
+EVSE_enable,0/1,bool,0/1,TRUE,Value,"FD,FE",EVSE_Enable,TRUE,Is the device enabled? Disable should not be called to interrupt charge – put device to sleep first.
+EVSE_reset,0/1,bool,0/1,TRUE,Value,FR,Reset,FALSE,Is the device restarting? Allow get_point timeout of 15s or greater if self tests are disabled.
+EVSE_sleep,0/1,bool,0/1,TRUE,Value,FS,Sleep,FALSE,Is the device sleeping? This function cannot be set to False to wake up device – use EVSE_enable instead.
 print_text,"coordinates, text",string,function,TRUE,Value,FP,Text,,Pass string argument to print text to screen. Calling get_point here reads back the last string that was displayed.
-backlight_color,range 0-7,int,0-7,TRUE,Value,FB,Color,6,"Set_point to set LCD color (0-7): off, red, yellow, green, teal, blue, violet, or white"
-restart_port,0/1,bool,0/1,TRUE,Value,,Restart,FALSE,"0 is restart completed, 1 is restarting."
-LCD_RGB,0/1,int,0/1,TRUE,GE,S0,LCD,,"0 is monochrome, 1 is RGB display"
-clock,util(datetime.datetime),string,yy mm dd hr min sec,TRUE,GT,S1,Datetime,,"Date and time, in VOLTTRON utility string converted from datetime object"
-ammeter_cal_enable,0/1,bool,0/1,TRUE,Value,S2,Ammeter,TRUE,"0 is ammeter calibration disabled, 1 is ammeter calibration enabled."
+backlight_color,range 0-7,int,0-7,TRUE,Value,FB,Color,6,"LCD color (0-7): off, red, yellow, green, teal, blue, violet, or white"
+restart_port,0/1,bool,0/1,TRUE,Value,,Restart,FALSE,Is the serial port restarting? This point does not affect device but closes and reopens serial port.
+LCD_RGB,0/1,int,0/1,TRUE,GE,S0,LCD,,"Is the display RGB? If not, it is or greyscale."
+clock,util(datetime.datetime),string,yy mm dd hr min sec,TRUE,GT,S1,Datetime,,"Date and time, in format of utils.format_timestamp(datetime.datetime(*args))"
+ammeter_cal_enable,0/1,bool,0/1,TRUE,Value,S2,Ammeter,TRUE,Is ammeter calibration enabled?
 charge_time_limit,range 0-255,int,15-minute increments,TRUE,G3,S3,,,Set timer in 15-min increments
 ammeter_setting,"scale, offset",int,A,TRUE,GA,SA,,,Ammeter scale factor and offset settings
 current_capacity_range,"min current, max current",int,A,FALSE,GC,,,,Current transfer range
-current_capacity,max current,int,A,TRUE,GE,SC,Capacity,,Upper limit on current
-diode_check_enable,,bool,0/1,TRUE,GE,SD,Diode,,"0 is diode check disabled, 1 is diode check enabled"
-command_echo_enable,,bool,0/1,TRUE,Value,SE,Echo,FALSE,"0 is echo disabled, 1 is echo disabled"
-GFI_self_test_enable,,bool,0/1,TRUE,GE,"SF,SS",GFI,,0 is GFI self test disabled 1 is GFI self test enabled. A 0 in both redundant GFI registers will disable the self test.
-ground_check_enable,,bool,0/1,TRUE,GE,SG,Ground,,"0 is ground check disabled, 1 is ground check disabled."
+current_capacity,max current,int,A,TRUE,GE,SC,Capacity,,Upper limit on current transfer
+diode_check_enable,,bool,0/1,TRUE,GE,SD,Diode,,Is the evse diode check enabled?
+command_echo_enable,,bool,0/1,TRUE,Value,SE,Echo,FALSE,Is the serial command echo enabled?
+GFI_self_test_enable,,bool,0/1,TRUE,GE,"SF,SS",GFI,,Is the GFI self test enabled?
+ground_check_enable,,bool,0/1,TRUE,GE,SG,Ground,,Is the ground check enabled?
 charge_limit,range 0-255,int,kWh,TRUE,GH,SH,,,Energy charge limit
 accumulated_charge,,int,Wh,TRUE,GU,SK,,,Get_point to read current charge (in Ws) and sum of all charges (in Wh). Set_point to force sum of all charges (in Wh).
-service_level,service level,string,1/2/A,TRUE,GE,SL,Service,,Charger service level L1/L2/Auto
+service_level,service level,string,1/2/A,TRUE,GE,SL,Service,,Charger service level L1/L2/Auto Detect (dictated by supply voltage).
 voltmeter_setting,"scale, offset",int,V,TRUE,GM,SM,,,Voltmeter scale factor and offset settings. Requires voltmeter on device – currently non-functional on OpnEVSE v4
-overtemp_thresh,"ambient, IR",int,10th of a degree C,TRUE,GO,SO,,,Overtemperature thresholds. Currently non-functional on OpenEVSE v4
-stuck_relay_check_enable,,bool,0/1,TRUE,GE,SR,Relay,,"0 is stuck relay check disabled, 1 is stuck relay check disabled."
-timer,"[str(start time), str(end time)]",string,starthr startmin endhr endmin,TRUE,Value,ST,Timer,,"Timer start and stop time in string-converted datetime.time format. When a timer is set and the device is sleeping, the charger will wake up to charge for the time duration, then return to sleep."
-vent_required_enable,,bool,0/1,TRUE,GE,SV,Vent,,"0 is vent required warning disabled, 1 is vent required warning enabled."
+overtemp_thresh,"ambient, IR",int,10th of a degree C,TRUE,GO,SO,,,Overtemperature thresholds. Currently non-functional on OpenEVSE v4.
+stuck_relay_check_enable,,bool,0/1,TRUE,GE,SR,Relay,,Is the stuck relay check enabled?
+timer,"[str(start time), str(end time)]",string,starthr startmin endhr endmin,TRUE,Value,ST,Timer,,"Timer start and stop time in format of str(datetime.time(*args)). When a timer is set and the device is sleeping, the charger will wake up to charge for the time duration, then return to sleep."
+vent_required_enable,,bool,0/1,TRUE,GE,SV,Vent,,Is the ventilation test enabled?
 current_voltage,charging current and voltage,int,"mA, mV",FALSE,GG,,,,Charging current and voltage
 temp,"ds3231, mcp9808, tmp007",int,10th of a degree C,FALSE,GP,,,,Temperature measurements
 state,"state, elapsed time",int,"state, seconds",FALSE,GS,,State,,Retrieve current state and elapsed charging time
-version,firmware version,string,version,FALSE,GV,,,,Retrieve firmware version
-settings,,string,"amps, flags",FALSE,GE,,Settings,,Current amps and any flags
-fault_counters,"gfi, no-ground, stuck relay",int,counters,FALSE,GF,,,,Fault counters
+version,firmware version,string,version,FALSE,GV,,,,Firmware version
+settings,,string,"amps, flags",FALSE,GE,,Settings,,Current capacity and any flags
+fault_counters,"gfi, no-ground, stuck relay",int,counters,FALSE,GF,,,,Count of number of times each fault has occurred

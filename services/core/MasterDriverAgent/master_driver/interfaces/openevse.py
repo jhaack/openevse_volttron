@@ -157,14 +157,15 @@ class Interface(BasicRevert, BaseInterface):
         try:
             #Collect device states
             state_register = self.get_register_by_function('State')
-            response = self.get_point(state_register.point_name) #Get state to update state registers
+            self.get_point(state_register.point_name) #Get state to update state registers
 
             #Enable ammeter calibration
             ammeter_register = self.get_register_by_function('Ammeter')
-            response = self._silent_request(ammeter_register.write_command, '1')
+            self._silent_request(ammeter_register.write_command, '1')
 
             #Disable echo
             echo_register = self.get_register_by_function('Echo')
+            self._silent_request(echo_register.write_command, '0')
         except:
             raise EvseError
 

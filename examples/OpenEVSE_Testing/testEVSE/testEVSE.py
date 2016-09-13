@@ -34,7 +34,7 @@ class TestAgent(Agent):
         # self.disable_start_tests() DO NOT USE WHEN EVSE PLUGGED IN. USE ONLY WHEN TESTING DISCONNECTED FROM WALL
         # self.enable_start_tests()
         # self.state_sequence()
-        self.test_timer()
+        # self.test_timer()
         # self.test_write()
 
 
@@ -372,7 +372,7 @@ class TestAgent(Agent):
                             True).get(timeout=15)
                         print("Set result", point_name, result)
                     except Exception as e:
-                        print ("Device Communication Failure)
+                        print ("Device Communication Failure")
                         print(e)
 
                 time.sleep(1)
@@ -1057,7 +1057,7 @@ class TestAgent(Agent):
                 print(e)
                 return
 
-            evse_datetime = format_timestamp(datetime.datetime(2016, 9, 13, 13, 30, 00))
+            evse_datetime = format_timestamp(datetime.datetime.now())
 
             # Set point
             try:
@@ -1085,6 +1085,7 @@ class TestAgent(Agent):
                 print ("Device Communication Failure")
                 print(e)
                 return
+
         # Canceling the scheduled actuator
         try:
             msg = [
